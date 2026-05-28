@@ -1,0 +1,131 @@
+﻿<!-- ReporteViajeWindow.xaml -->
+<Window x:Class="AplicacionDespacho.ReporteViajeWindow"    
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"    
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
+        Title="Reporte de Viaje" Height="600" Width="1000"   
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título -->
+        <TextBlock Grid.Row="0" Text="Reporte Detallado de Viaje"     
+                   FontSize="18" FontWeight="Bold"     
+                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <!-- Información del viaje -->
+        <GroupBox Grid.Row="1" Header="Información del Viaje" Margin="0,0,0,20">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="Fecha:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="txtFecha" Margin="5,0,20,0"/>
+
+                <Label Grid.Row="0" Grid.Column="2" Content="N° Viaje:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" x:Name="txtNumeroViaje" Margin="5,0,0,0"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="N° Guía:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="txtNumeroGuia" Margin="5,0,20,0"/>
+
+                <Label Grid.Row="1" Grid.Column="2" Content="Responsable:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="1" Grid.Column="3" x:Name="txtResponsable" Margin="5,0,0,0"/>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="Empresa:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="txtEmpresa" Margin="5,0,20,0"/>
+
+                <Label Grid.Row="4" Content="Conductor:" FontWeight="Bold" Margin="1,0,3,0"/>
+                <TextBlock Grid.Row="4" x:Name="txtConductor" Margin="2,0,3,0" Grid.Column="1"/>
+
+                <!-- ✅ NUEVOS CAMPOS AGREGADOS -->
+                <Label Grid.Row="3" Grid.Column="0" Content="Placa Vehículo:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" x:Name="txtPlacaVehiculo" Margin="5,0,20,0"/>
+
+                <Label Grid.Row="2" Grid.Column="2" Content="Punto Partida:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="2" Grid.Column="3" x:Name="txtPuntoPartida" Margin="5,0,0,0"/>
+
+                <Label Grid.Row="3" Grid.Column="2" Content="Punto Llegada:" FontWeight="Bold"/>
+                <TextBlock Grid.Row="3" Grid.Column="3" x:Name="txtPuntoLlegada" Margin="5,0,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Pallets del viaje -->
+        <GroupBox Grid.Row="2" Header="Pallets del Viaje" Margin="0,0,0,20">
+            <DataGrid x:Name="dgPallets"     
+                      AutoGenerateColumns="False"     
+                      IsReadOnly="True"    
+                      GridLinesVisibility="Horizontal"    
+                      AlternatingRowBackground="LightGray">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Pallet" Binding="{Binding NumeroPallet}" Width="100"/>
+                    <DataGridTextColumn Header="Variedad" Binding="{Binding VariedadParaReporte}" Width="150"/>
+                    <DataGridTextColumn Header="Calibre" Binding="{Binding Calibre}" Width="100"/>
+                    <DataGridTextColumn Header="Embalaje" Binding="{Binding Embalaje}" Width="120"/>
+                    <DataGridTextColumn Header="N° Cajas" Binding="{Binding TotalCajasDisplay}" Width="120"/>
+                    <DataGridTextColumn Header="Peso Unit. (kg)" Binding="{Binding PesoUnitario, StringFormat=F3}" Width="100"/>
+                    <DataGridTextColumn Header="Peso Total (kg)" Binding="{Binding PesoTotal, StringFormat=F3}" Width="110"/>
+                    <DataGridCheckBoxColumn Header="Modificado" Binding="{Binding Modificado}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Resumen de totales -->
+        <GroupBox Grid.Row="3" Header="Resumen de Totales" Margin="0,0,0,20">
+            <!-- REEMPLAZAR LÍNEAS 95-111 CON ESTA ESTRUCTURA CONDICIONAL -->
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
+                <!-- Totales generales (siempre visibles) -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <TextBlock Text="Total Pallets: " FontWeight="Bold"/>
+                    <TextBlock x:Name="txtTotalPallets" FontWeight="Bold" Margin="0,0,20,0"/>
+                    <TextBlock Text="Total Cajas: " FontWeight="Bold"/>
+                    <TextBlock x:Name="txtTotalCajas" FontWeight="Bold" Margin="0,0,20,0"/>
+                    <TextBlock Text="Peso Total: " FontWeight="Bold"/>
+                    <TextBlock x:Name="txtPesoTotal" FontWeight="Bold"/>
+                    <TextBlock Text=" kg" FontWeight="Bold"/>
+                </StackPanel>
+
+                <!-- Contadores PC/PH (siempre visibles) -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                    <TextBlock Text="PC: " FontWeight="Bold" Foreground="Green"/>
+                    <TextBlock x:Name="txtTotalPC" FontWeight="Bold" Foreground="Green" Margin="0,0,20,0"/>
+                    <TextBlock Text="PH: " FontWeight="Bold" Foreground="Orange"/>
+                    <TextBlock x:Name="txtTotalPH" FontWeight="Bold" Foreground="Orange"/>
+                </StackPanel>
+
+                <!-- Contadores CT/EN (visibles solo cuando hay pallets CT/EN) -->
+                <StackPanel x:Name="panelCTEN" Orientation="Horizontal" HorizontalAlignment="Center"   
+                Margin="0,0,0,5" Visibility="Collapsed">
+                    <TextBlock Text="CT: " FontWeight="Bold" Foreground="Blue"/>
+                    <TextBlock x:Name="txtTotalCT" FontWeight="Bold" Foreground="Blue" Margin="0,0,20,0"/>
+                    <TextBlock Text="EN: " FontWeight="Bold" Foreground="Purple"/>
+                    <TextBlock x:Name="txtTotalEN" FontWeight="Bold" Foreground="Purple"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Botones -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnExportar" Content="Exportar" Width="80" Height="30"     
+                    Margin="0,0,10,0" Click="btnExportar_Click"/>
+            <Button x:Name="btnCerrar" Content="Cerrar" Width="80" Height="30"     
+                    Click="btnCerrar_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

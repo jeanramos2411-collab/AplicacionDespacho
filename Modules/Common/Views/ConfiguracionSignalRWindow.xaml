@@ -1,0 +1,253 @@
+﻿<Window x:Class="AplicacionDespacho.Modules.Common.Views.ConfiguracionSignalRWindow"  
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"    
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
+        Title="Configuración del Servidor SignalR"     
+        Height="650"     
+        Width="900"    
+        WindowStartupLocation="CenterOwner"    
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <!-- Estilos para mantener consistencia con el resto de la aplicación -->
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,5,0,2"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,2,0,10"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#005A9B"/>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#28A745"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#1E7E34"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título principal -->
+        <TextBlock Grid.Row="0"     
+                   Text="Configuración del Servidor SignalR"     
+                   FontSize="18"     
+                   FontWeight="Bold"     
+                   Margin="0,0,0,20"    
+                   HorizontalAlignment="Center"/>
+
+        <!-- Fila superior: Configuración Actual y Nueva Configuración lado a lado -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Información actual -->
+            <GroupBox Grid.Column="0" Header="Configuración Actual">
+                <StackPanel Margin="10">
+                    <Label Content="URL Actual:"/>
+                    <TextBlock x:Name="txtUrlActual"     
+                              Text="{Binding UrlActual}"     
+                              FontFamily="Consolas"    
+                              Background="#F8F8F8"    
+                              Padding="5"    
+                              TextWrapping="Wrap"  
+                              Margin="0,0,0,10"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Estado de Conexión:"/>
+                        <Ellipse x:Name="indicadorConexion"     
+                                Width="12"     
+                                Height="12"     
+                                Fill="{Binding EstadoConexionColor}"    
+                                Margin="5,0,5,0"    
+                                VerticalAlignment="Center"/>
+                        <TextBlock x:Name="txtEstadoConexion"     
+                                  Text="{Binding EstadoConexionTexto}"    
+                                  VerticalAlignment="Center"    
+                                  FontWeight="SemiBold"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Configuración nueva -->
+            <GroupBox Grid.Column="2" Header="Nueva Configuración">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- IP del Servidor -->
+                    <Label Grid.Row="0" Grid.Column="0" Content="IP del Servidor:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="txtServerIp"     
+                            Grid.Row="0" Grid.Column="1"     
+                            Text="{Binding ServerIp, UpdateSourceTrigger=PropertyChanged}"    
+                            ToolTip="Dirección IP del servidor SignalR (ej: 192.168.1.100)"/>
+
+                    <!-- Puerto -->
+                    <Label Grid.Row="1" Grid.Column="0" Content="Puerto:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="txtServerPort"     
+                            Grid.Row="1" Grid.Column="1"     
+                            Text="{Binding ServerPort, UpdateSourceTrigger=PropertyChanged}"    
+                            ToolTip="Puerto del servidor SignalR (ej: 7164)"/>
+
+                    <!-- URL Completa Preview -->
+                    <Label Grid.Row="2" Grid.Column="0" Content="URL Completa:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                    <TextBlock x:Name="txtUrlCompleta"     
+                              Grid.Row="2" Grid.Column="1"    
+                              Text="{Binding UrlCompleta}"    
+                              FontFamily="Consolas"    
+                              Background="#F0F8FF"    
+                              Padding="5"    
+                              TextWrapping="Wrap"  
+                              Margin="0,2,0,10"    
+                              VerticalAlignment="Center"/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- Área principal con tres columnas -->
+        <Grid Grid.Row="2" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Columna 1: Configuraciones predefinidas y Validación -->
+            <StackPanel Grid.Column="0">
+                <!-- Validación -->
+                <TextBlock x:Name="txtValidacion"     
+                          Text="{Binding MensajeValidacion}"    
+                          Foreground="{Binding ColorValidacion}"    
+                          FontWeight="SemiBold"    
+                          TextWrapping="Wrap"  
+                          HorizontalAlignment="Center"  
+                          Margin="0,0,0,15"    
+                          Visibility="{Binding MostrarValidacion}"/>
+
+                <!-- Configuraciones predefinidas -->
+                <GroupBox Header="Configuraciones Rápidas">
+                    <StackPanel Margin="10">
+                        <Button x:Name="btnConfigLocal"     
+                               Content="Local (127.0.0.1:7164)"     
+                               Style="{StaticResource SecondaryButton}"    
+                               Click="BtnConfigLocal_Click"    
+                               ToolTip="Configurar para servidor local"  
+                               Margin="0,0,0,10"/>
+
+                        <Button x:Name="btnConfigDefault"     
+                               Content="Por Defecto (192.168.0.103:7164)"     
+                               Style="{StaticResource SecondaryButton}"    
+                               Click="BtnConfigDefault_Click"    
+                               ToolTip="Configurar con valores por defecto"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+
+            <!-- Columna 2: Área de pruebas -->
+            <GroupBox Grid.Column="2" Header="Prueba de Conexión">
+                <StackPanel Margin="10">
+                    <Button x:Name="btnProbarConexion"     
+                           Content="Probar Conexión"     
+                           Style="{StaticResource SecondaryButton}"    
+                           Click="BtnProbarConexion_Click"    
+                           IsEnabled="{Binding PuedeProbarConexion}"  
+                           HorizontalAlignment="Center"  
+                           Margin="0,0,0,10"/>
+
+                    <ProgressBar x:Name="progressPrueba"     
+                                Width="200"     
+                                Height="20"     
+                                Margin="0,0,0,10"    
+                                IsIndeterminate="{Binding ProbandoConexion}"    
+                                Visibility="{Binding MostrarProgress}"/>
+
+                    <TextBlock x:Name="txtResultadoPrueba"     
+                              Text="{Binding ResultadoPrueba}"    
+                              Foreground="{Binding ColorResultado}"    
+                              FontWeight="SemiBold"    
+                              TextWrapping="Wrap"    
+                              HorizontalAlignment="Center"  
+                              Visibility="{Binding MostrarResultado}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Columna 3: Log de actividad -->
+            <GroupBox Grid.Column="4" Header="Log de Actividad">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="300" Margin="10">
+                    <TextBox x:Name="txtLog"     
+                            Text="{Binding LogActividad}"    
+                            IsReadOnly="True"    
+                            FontFamily="Consolas"    
+                            FontSize="10"    
+                            Background="#F8F8F8"    
+                            BorderThickness="0"    
+                            TextWrapping="Wrap"    
+                            VerticalScrollBarVisibility="Auto" Height="156"/>
+                </ScrollViewer>
+            </GroupBox>
+        </Grid>
+
+        <!-- Botones de acción -->
+        <StackPanel Grid.Row="3"     
+                   Orientation="Horizontal"     
+                   HorizontalAlignment="Center"     
+                   Margin="0,10,0,0">
+
+            <Button x:Name="btnGuardar"     
+                   Content="Guardar Configuración"     
+                   Style="{StaticResource PrimaryButton}"    
+                   Click="BtnGuardar_Click"    
+                   IsEnabled="{Binding PuedeGuardar}"/>
+
+            <Button x:Name="btnRestablecer"     
+                   Content="Restablecer"     
+                   Style="{StaticResource SecondaryButton}"    
+                   Click="BtnRestablecer_Click"/>
+
+            <Button x:Name="btnCancelar"     
+                   Content="Cancelar"     
+                   Style="{StaticResource SecondaryButton}"    
+                   Click="BtnCancelar_Click"    
+                   IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

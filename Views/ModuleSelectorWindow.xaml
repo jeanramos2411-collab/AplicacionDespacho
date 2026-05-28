@@ -1,0 +1,329 @@
+﻿<Window x:Class="AplicacionDespacho.Views.ModuleSelectorWindow"        
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"        
+        xmlns:local="clr-namespace:AplicacionDespacho.Views"    
+        Title="Sistema de Gestión - Seleccionar Módulo"         
+        Height="600" Width="900"        
+        WindowStartupLocation="CenterScreen"        
+        ResizeMode="NoResize"        
+        Background="#F5F5F5">
+
+    <!-- RECURSOS DE LA VENTANA -->
+    <Window.Resources>
+        <!-- Convertidor para visibilidad basada en cantidad -->
+        <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
+        <!-- NUEVO: Convertidor inverso para visibilidad -->
+        <local:InverseCountToVisibilityConverter x:Key="InverseCountToVisibilityConverter"/>
+
+        <!-- Estilo para botones de módulos -->
+        <Style x:Key="ModuleButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1976D2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"        
+                               CornerRadius="6"        
+                               Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"        
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1565C0"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#BDBDBD"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Estilo para botones de perfil -->
+        <Style x:Key="ProfileButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"        
+                               CornerRadius="4"        
+                               Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"        
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#45A049"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ENCABEZADO -->
+        <Border Grid.Row="0" Background="#1976D2" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Sistema de Gestión Integral"        
+                          FontSize="28"        
+                          FontWeight="Bold"        
+                          Foreground="White"        
+                          HorizontalAlignment="Center"/>
+                <TextBlock Text="Seleccione el módulo con el que desea trabajar"        
+                          FontSize="14"        
+                          Foreground="#E3F2FD"        
+                          HorizontalAlignment="Center"        
+                          Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ÁREA DE MÓDULOS -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Margin="40,30">
+                <!-- Contenedor de módulos -->
+                <ItemsControl x:Name="ModulesItemsControl">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"         
+                                      HorizontalAlignment="Center"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"        
+                                   CornerRadius="12"        
+                                   Margin="15"        
+                                   Width="250"        
+                                   MinHeight="200"    
+                                   BorderBrush="#E0E0E0"        
+                                   BorderThickness="1">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#000000"         
+                                                    Opacity="0.1"         
+                                                    BlurRadius="10"         
+                                                    ShadowDepth="2"/>
+                                </Border.Effect>
+
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Icono del módulo -->
+                                    <TextBlock Grid.Row="0"        
+                                              Text="{Binding Icon}"        
+                                              FontSize="48"        
+                                              HorizontalAlignment="Center"        
+                                              Margin="0,20,0,10"/>
+
+                                    <!-- Información del módulo -->
+                                    <StackPanel Grid.Row="1" Margin="15,0">
+                                        <TextBlock Text="{Binding DisplayName}"        
+                                                  FontSize="20"        
+                                                  FontWeight="Bold"        
+                                                  HorizontalAlignment="Center"        
+                                                  TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Description}"        
+                                                  FontSize="12"        
+                                                  Foreground="#757575"        
+                                                  HorizontalAlignment="Center"        
+                                                  TextWrapping="Wrap"        
+                                                  Margin="0,5,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Área de botones (perfiles o botón único) -->
+                                    <StackPanel Grid.Row="2" Margin="15,0,15,15">
+                                        <!-- Botones de perfiles (visible solo si hay perfiles) -->
+                                        <ItemsControl ItemsSource="{Binding AvailableProfiles}"    
+                                                     Visibility="{Binding AvailableProfiles.Count,     
+                                                                 Converter={StaticResource CountToVisibilityConverter}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel HorizontalAlignment="Center"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="{Binding}"    
+                                                           Style="{StaticResource ProfileButtonStyle}"    
+                                                           Click="ProfileButton_Click"    
+                                                           Tag="{Binding RelativeSource={RelativeSource AncestorType=Border},     
+                                                                        Path=DataContext}"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Botón único (visible solo si NO hay perfiles) -->
+                                        <Button Content="Abrir"        
+                                               Style="{StaticResource ModuleButtonStyle}"        
+                                               Click="OpenModule_Click"        
+                                               Tag="{Binding}"        
+                                               IsEnabled="{Binding IsEnabled}"  
+                                               Visibility="{Binding AvailableProfiles.Count,   
+                                                           Converter={StaticResource InverseCountToVisibilityConverter}}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- SECCIÓN DE CONFIGURACIÓN -->
+                <Border Background="White"        
+                       CornerRadius="8"        
+                       Padding="20"        
+                       Margin="0,20,0,0"        
+                       BorderBrush="#E0E0E0"        
+                       BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000"         
+                                        Opacity="0.05"         
+                                        BlurRadius="8"         
+                                        ShadowDepth="2"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Configuración del Sistema"        
+                                  FontSize="16"        
+                                  FontWeight="SemiBold"        
+                                  Margin="0,0,0,15"/>
+
+                        <WrapPanel HorizontalAlignment="Center">
+                            <!-- Botón Configurar Base de Datos -->
+                            <Button Content="🗄️ Configurar Base de Datos"        
+                                   Click="ConfigurarBaseDatos_Click"        
+                                   Margin="10"        
+                                   Padding="15,10"        
+                                   Background="#4CAF50"        
+                                   Foreground="White"        
+                                   FontSize="13"        
+                                   BorderThickness="0"        
+                                   Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"        
+                                               CornerRadius="6"        
+                                               Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center"        
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#45A049"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Botón Configurar SignalR Hub -->
+                            <Button Content="📡 Configurar SignalR Hub"        
+                                   Click="ConfigurarSignalR_Click"        
+                                   Margin="10"        
+                                   Padding="15,10"        
+                                   Background="#FF9800"        
+                                   Foreground="White"        
+                                   FontSize="13"        
+                                   BorderThickness="0"        
+                                   Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"        
+                                               CornerRadius="6"        
+                                               Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center"        
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#F57C00"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- PIE DE PÁGINA -->
+        <Border Grid.Row="2" Background="#EEEEEE" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"        
+                          Text="Sistema de Gestión Integral v1.0"        
+                          VerticalAlignment="Center"        
+                          Foreground="#757575"/>
+
+                <Button Grid.Column="1"        
+                       Content="Salir"        
+                       Click="ExitButton_Click"        
+                       Padding="20,10"        
+                       Background="#F44336"        
+                       Foreground="White"        
+                       BorderThickness="0"        
+                       Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"        
+                                   CornerRadius="4"        
+                                   Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center"        
+                                                VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#D32F2F"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

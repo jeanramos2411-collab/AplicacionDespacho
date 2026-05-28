@@ -1,0 +1,52 @@
+﻿<Window x:Class="AplicacionDespacho.SeleccionViajeActivoWindow"    
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"    
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
+        xmlns:converters="clr-namespace:AplicacionDespacho.Converters"  
+        Title="Seleccionar Viaje Activo" Height="450" Width="932"    
+        WindowStartupLocation="CenterScreen"    
+        ResizeMode="CanResize">
+    <Window.Resources>
+        <converters:EstadoViajeConverter x:Key="EstadoViajeConverter"/>
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Seleccione un viaje activo para continuar:"  
+                   FontSize="14" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <DataGrid Grid.Row="1" x:Name="dgViajesActivos"  
+                  AutoGenerateColumns="False" IsReadOnly="True"  
+                  SelectionMode="Single" GridLinesVisibility="Horizontal"  
+                  AlternatingRowBackground="LightGray">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Estado" Width="100">
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="EstaEnUso" Converter="{StaticResource EstadoViajeConverter}"/>
+                    </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="N° Viaje" Binding="{Binding NumeroViaje}" Width="80"/>
+                <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=dd/MM/yyyy}" Width="100"/>
+                <DataGridTextColumn Header="Responsable" Binding="{Binding Responsable}" Width="150"/>
+                <DataGridTextColumn Header="N° Guía" Binding="{Binding NumeroGuia}" Width="120"/>
+                
+                <DataGridTextColumn Header="Empresa" Binding="{Binding NombreEmpresa}" Width="180"/>
+                <DataGridTextColumn Header="Conductor" Binding="{Binding NombreConductor}" Width="150"/>
+                <DataGridTextColumn Header="Placa" Binding="{Binding PlacaVehiculo}" Width="100"/>
+            </DataGrid.Columns>
+            
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="btnActualizar" Content="Actualizar" Width="100" Height="30" Margin="0,0,10,0"     
+                    Click="btnActualizar_Click"/>
+            <Button Content="Continuar" Width="100" Height="30" Margin="0,0,10,0"   
+                    Click="btnContinuar_Click" IsDefault="True"/>
+            <Button Content="Cancelar" Width="100" Height="30"   
+                    Click="btnCancelar_Click" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

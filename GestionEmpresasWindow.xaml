@@ -1,0 +1,212 @@
+﻿<Window x:Class="AplicacionDespacho.GestionEmpresasWindow"  
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"  
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+        Title="Gestión de Empresas de Transporte" Height="700" Width="1200"  
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título -->
+        <TextBlock Grid.Row="0" Text="Gestión Integral de Empresas de Transporte"   
+                   FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+        <!-- Contenido principal con TabControl -->
+        <TabControl Grid.Row="1" x:Name="tabControl">
+
+            <!-- Tab de Empresas -->
+            <TabItem Header="Empresas" x:Name="tabEmpresas">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Lista de empresas -->
+                    <DataGrid Grid.Row="0" x:Name="dgEmpresas" AutoGenerateColumns="False"   
+                              SelectionMode="Single" SelectionChanged="dgEmpresas_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding EmpresaId}" Width="50"/>
+                            <DataGridTextColumn Header="Nombre Empresa" Binding="{Binding NombreEmpresa}" Width="300"/>
+                            <DataGridTextColumn Header="RUC" Binding="{Binding RUC}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Formulario de empresa -->
+                    <GroupBox Grid.Row="1" Header="Datos de Empresa" Margin="0,10,0,0">
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtNombreEmpresa" Margin="0,0,20,0"/>
+
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="RUC:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" x:Name="txtRUC"/>
+
+                            <!-- Botones de empresa -->
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal"   
+                                        HorizontalAlignment="Right" Margin="0,10,0,0">
+                                <Button x:Name="btnNuevaEmpresa" Content="Nueva" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnNuevaEmpresa_Click"/>
+                                <Button x:Name="btnGuardarEmpresa" Content="Guardar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnGuardarEmpresa_Click"/>
+                                <Button x:Name="btnEditarEmpresa" Content="Editar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnEditarEmpresa_Click"/>
+                                <Button x:Name="btnEliminarEmpresa" Content="Eliminar" Width="80" Height="30"   
+                                        Click="btnEliminarEmpresa_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab de Conductores -->
+            <TabItem Header="Conductores" x:Name="tabConductores">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filtro por empresa -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Empresa:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="cmbEmpresaConductores" Width="300" DisplayMemberPath="NombreEmpresa"   
+                                  SelectedValuePath="EmpresaId" SelectionChanged="cmbEmpresaConductores_SelectionChanged"/>
+                    </StackPanel>
+
+                    <!-- Lista de conductores -->
+                    <DataGrid Grid.Row="1" x:Name="dgConductores" AutoGenerateColumns="False"   
+                              SelectionMode="Single" SelectionChanged="dgConductores_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding ConductorId}" Width="50"/>
+                            <DataGridTextColumn Header="Nombre Conductor" Binding="{Binding NombreConductor}" Width="200"/>
+                            <!-- AGREGAR ESTA COLUMNA -->
+                            <DataGridTextColumn Header="Empresa" Binding="{Binding NombreEmpresa}" Width="200"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Formulario de conductor -->
+                    <GroupBox Grid.Row="2" Header="Datos de Conductor" Margin="0,10,0,0">
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtNombreConductor" Margin="0,0,20,0"/>
+
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Empresa:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Grid.Row="0" Grid.Column="3" x:Name="cmbEmpresaConductor"   
+                                      DisplayMemberPath="NombreEmpresa" SelectedValuePath="EmpresaId"/>
+
+                            <!-- Botones de conductor -->
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal"   
+                                        HorizontalAlignment="Right" Margin="0,10,0,0">
+                                <Button x:Name="btnNuevoConductor" Content="Nuevo" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnNuevoConductor_Click"/>
+                                <Button x:Name="btnGuardarConductor" Content="Guardar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnGuardarConductor_Click"/>
+                                <Button x:Name="btnEditarConductor" Content="Editar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnEditarConductor_Click"/>
+                                <Button x:Name="btnEliminarConductor" Content="Eliminar" Width="80" Height="30"   
+                                        Click="btnEliminarConductor_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab de Vehículos -->
+            <TabItem Header="Vehículos" x:Name="tabVehiculos">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filtro por empresa -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Empresa:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="cmbEmpresaVehiculos" Width="300" DisplayMemberPath="NombreEmpresa"   
+                                  SelectedValuePath="EmpresaId" SelectionChanged="cmbEmpresaVehiculos_SelectionChanged"/>
+                    </StackPanel>
+
+                    <!-- Lista de vehículos -->
+                    <DataGrid Grid.Row="1" x:Name="dgVehiculos" AutoGenerateColumns="False"   
+                              SelectionMode="Single" SelectionChanged="dgVehiculos_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding VehiculoId}" Width="50"/>
+                            <DataGridTextColumn Header="Placa" Binding="{Binding Placa}" Width="150"/>
+                            <DataGridTextColumn Header="Empresa" Binding="{Binding NombreEmpresa}" Width="200"/>  
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Formulario de vehículo -->
+                    <GroupBox Grid.Row="2" Header="Datos de Vehículo" Margin="0,10,0,0">
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Placa:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtPlacaVehiculo" Margin="0,0,20,0"/>
+
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Empresa:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Grid.Row="0" Grid.Column="3" x:Name="cmbEmpresaVehiculo"   
+                                      DisplayMemberPath="NombreEmpresa" SelectedValuePath="EmpresaId"/>
+
+                            <!-- Botones de vehículo -->
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal"   
+                                        HorizontalAlignment="Right" Margin="0,10,0,0">
+                                <Button x:Name="btnNuevoVehiculo" Content="Nuevo" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnNuevoVehiculo_Click"/>
+                                <Button x:Name="btnGuardarVehiculo" Content="Guardar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnGuardarVehiculo_Click"/>
+                                <Button x:Name="btnEditarVehiculo" Content="Editar" Width="80" Height="30"   
+                                        Margin="0,0,10,0" Click="btnEditarVehiculo_Click"/>
+                                <Button x:Name="btnEliminarVehiculo" Content="Eliminar" Width="80" Height="30"   
+                                        Click="btnEliminarVehiculo_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Botón cerrar -->
+        <Button Grid.Row="2" x:Name="btnCerrar" Content="Cerrar" Width="100" Height="35"   
+                HorizontalAlignment="Right" Margin="0,10,0,0" Click="btnCerrar_Click"/>
+    </Grid>
+</Window>

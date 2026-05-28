@@ -1,0 +1,101 @@
+﻿<Window x:Class="AplicacionDespacho.PesosPorEmbalajeWindow"    
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"    
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"    
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"    
+        mc:Ignorable="d"    
+        Title="Gestión de Pesos por Embalaje" Height="600" Width="800"    
+        ResizeMode="CanResize"    
+        WindowStartupLocation="CenterScreen"    
+        Loaded="Window_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título -->
+        <TextBlock Grid.Row="0" Text="Gestión de Pesos por Embalaje"     
+                   FontSize="18" FontWeight="Bold"     
+                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <!-- DataGrid para mostrar pesos existentes -->
+        <GroupBox Grid.Row="1" Header="Pesos de Embalaje Registrados" Margin="0,0,0,20">
+            <DataGrid x:Name="dgPesosEmbalaje"     
+                      AutoGenerateColumns="False"     
+                      CanUserAddRows="False"    
+                      CanUserDeleteRows="False"    
+                      SelectionMode="Single"    
+                      GridLinesVisibility="Horizontal"    
+                      AlternatingRowBackground="LightGray"    
+                      HeadersVisibility="Column"    
+                      IsReadOnly="False"    
+                      SelectionChanged="dgPesosEmbalaje_SelectionChanged">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding PesoEmbalajeId}" IsReadOnly="True" Width="60"/>
+                    <DataGridTextColumn Header="Nombre del Embalaje" Binding="{Binding NombreEmbalaje}" Width="300"/>
+                    <DataGridTextColumn Header="Peso Unitario (kg)" Binding="{Binding PesoUnitario, StringFormat=F3}" Width="150"/>
+                    <DataGridTextColumn Header="Total Cajas Ficha Técnica" Binding="{Binding TotalCajasFichaTecnica}" Width="150"/>
+                    <DataGridTextColumn Header="Fecha Creación" Binding="{Binding FechaCreacion, StringFormat=dd/MM/yyyy HH:mm}" IsReadOnly="True" Width="150"/>
+                    <DataGridTextColumn Header="Fecha Modificación" Binding="{Binding FechaModificacion, StringFormat=dd/MM/yyyy HH:mm}" IsReadOnly="True" Width="150"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Formulario para agregar/editar peso de embalaje -->
+        <GroupBox Grid.Row="2" Header="Agregar/Editar Peso de Embalaje" Margin="0,0,0,20">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Campo oculto para ID -->
+                <TextBox x:Name="txtPesoEmbalajeId" Visibility="Hidden"/>
+
+                <!-- Nombre del Embalaje -->
+                <Label Grid.Row="0" Grid.Column="0" Content="Nombre del Embalaje:"     
+                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtNombreEmbalaje" Grid.Row="0" Grid.Column="1"     
+                         Margin="0,0,20,5" Height="25" VerticalAlignment="Center"/>
+
+                <!-- Peso Unitario -->
+                <Label Grid.Row="0" Grid.Column="2" Content="Peso Unitario (kg):"     
+                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtPesoUnitario" Grid.Row="0" Grid.Column="3"     
+                         Margin="0,0,0,5" Height="25" VerticalAlignment="Center"/>
+                <!-- Agregar después del campo PesoUnitario -->
+                <Label Grid.Row="2" Grid.Column="0" Content="Total Cajas Ficha Técnica:"   
+                    VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtTotalCajasFichaTecnica" Grid.Row="2" Grid.Column="1"   
+                    Margin="0,0,20,5" Height="25" VerticalAlignment="Center"/>
+                <!-- Botones de acción -->
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"     
+                           Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button x:Name="btnGuardar" Content="Guardar" Width="80" Height="30"     
+                            Margin="0,0,10,0" Click="btnGuardar_Click"/>
+                    <Button x:Name="btnActualizar" Content="Actualizar" Width="80" Height="30"     
+                            Margin="0,0,10,0" Click="btnActualizar_Click" IsEnabled="False"/>
+                    <Button x:Name="btnLimpiar" Content="Limpiar" Width="80" Height="30"     
+                            Click="btnLimpiar_Click"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Botones de navegación -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnCerrar" Content="Cerrar" Width="80" Height="30"     
+                    Click="btnCerrar_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

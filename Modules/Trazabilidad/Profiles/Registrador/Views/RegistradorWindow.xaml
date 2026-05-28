@@ -1,0 +1,193 @@
+﻿<Window x:Class="AplicacionDespacho.Modules.Trazabilidad.Profiles.Registrador.Views.RegistradorWindow"  
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"  
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+        Title="Trazabilidad - Registrador de Pallets"   
+        Height="700" Width="1200"  
+        WindowStartupLocation="CenterScreen"  
+        WindowState="Maximized">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título -->
+        <TextBlock Grid.Row="0" Text="Registro Manual de Pallets"   
+                   FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- Formulario de registro -->
+        <Border Grid.Row="1" Background="White" CornerRadius="5" Padding="20" Margin="0,0,0,20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0.3"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Número de Pallet -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Número de Pallet:"   
+                           VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox Grid.Row="0" Grid.Column="1"   
+                         Text="{Binding NumeroPallet, UpdateSourceTrigger=PropertyChanged}"   
+                         Height="30" Margin="0,0,20,10"/>
+
+                <!-- Variedad -->
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Variedad:"   
+                           VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <ComboBox Grid.Row="0" Grid.Column="3"   
+                          ItemsSource="{Binding VariedadesList}"  
+                          SelectedItem="{Binding VariedadSeleccionada}"  
+                          Height="30" Margin="0,0,0,10"/>
+
+                <!-- Calibre -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Calibre:"   
+                           VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <ComboBox Grid.Row="1" Grid.Column="1"   
+                          ItemsSource="{Binding CalibresList}"  
+                          SelectedItem="{Binding CalibreSeleccionado}"  
+                          Height="30" Margin="0,0,20,10"/>
+
+                <!-- Embalaje -->
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="Embalaje:"   
+                           VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <ComboBox Grid.Row="1" Grid.Column="3"   
+                          ItemsSource="{Binding EmbalajesList}"  
+                          SelectedItem="{Binding EmbalajeSeleccionado}"  
+                          Height="30" Margin="0,0,0,10"/>
+
+                <!-- Match/Contenedor -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Match/Contenedor:"   
+                           VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox Grid.Row="2" Grid.Column="1"   
+                         Text="{Binding NumeroMatch, UpdateSourceTrigger=PropertyChanged}"   
+                         Height="30" Margin="0,0,20,10"/>
+
+                <!-- Sección de Lotes/Cuarteles -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"   
+                           Text="Lotes/Cuarteles del Pallet"   
+                           FontSize="16" FontWeight="SemiBold" Margin="0,10,0,10"/>
+
+                <!-- Formulario para agregar lote -->
+                <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Código Cuartel:" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevoCodigoCuartel, UpdateSourceTrigger=PropertyChanged}"   
+                                 Height="30"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="CSG Predio:" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevoCSGPredio, UpdateSourceTrigger=PropertyChanged}"   
+                                 Height="30"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                        <TextBlock Text="Nombre Predio:" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevoNombrePredio, UpdateSourceTrigger=PropertyChanged}"   
+                                 Height="30"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                        <TextBlock Text="Cantidad Cajas:" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevaCantidadCajas, UpdateSourceTrigger=PropertyChanged}"   
+                                 Height="30"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="4" Content="Agregar Lote"   
+                            Command="{Binding ComandoAgregarLote}"  
+                            Height="30" Width="100" VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <!-- Lista de lotes agregados -->
+                <DataGrid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"   
+                          ItemsSource="{Binding LotesAgregados}"  
+                          AutoGenerateColumns="False"   
+                          CanUserAddRows="False"  
+                          Height="150" Margin="0,10,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Cuartel" Binding="{Binding CodigoCuartel}" Width="100"/>
+                        <DataGridTextColumn Header="CSG Predio" Binding="{Binding CSGPredio}" Width="150"/>
+                        <DataGridTextColumn Header="Predio" Binding="{Binding NombrePredio}" Width="*"/>
+                        <DataGridTextColumn Header="Cajas" Binding="{Binding CantidadCajas}" Width="80"/>
+                        <DataGridTemplateColumn Header="Acciones" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Eliminar"   
+                                            Command="{Binding DataContext.ComandoEliminarLote,   
+                                                     RelativeSource={RelativeSource AncestorType=DataGrid}}"  
+                                            CommandParameter="{Binding}"  
+                                            Width="80" Height="25"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Lista de pallets registrados -->
+        <Border Grid.Row="2" Background="White" CornerRadius="5" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0.3"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Pallets Registrados"   
+                           FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding PalletsRegistrados}"  
+                          AutoGenerateColumns="False" IsReadOnly="True"  
+                          CanUserAddRows="False" CanUserDeleteRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Pallet" Binding="{Binding NumeroPallet}" Width="120"/>
+                        <DataGridTextColumn Header="Variedad" Binding="{Binding Variedad}" Width="150"/>
+                        <DataGridTextColumn Header="Calibre" Binding="{Binding Calibre}" Width="100"/>
+                        <DataGridTextColumn Header="Embalaje" Binding="{Binding Embalaje}" Width="100"/>
+                        <DataGridTextColumn Header="Match" Binding="{Binding NumeroMatch}" Width="100"/>
+                        <DataGridTextColumn Header="Total Cajas" Binding="{Binding TotalCajas}" Width="100"/>
+                        <DataGridTextColumn Header="Lotes" Binding="{Binding CantidadLotes}" Width="80"/>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding FechaRegistro, StringFormat=dd/MM/yyyy HH:mm}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Botones de acción -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <TextBlock Text="Total Cajas: " FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TotalCajasCalculado}" FontWeight="Bold" FontSize="14"   
+                       Foreground="Blue" VerticalAlignment="Center" Margin="5,0,20,0"/>
+            <Button Content="Guardar Pallet" Command="{Binding ComandoGuardarPallet}"  
+                    Width="120" Height="35" Margin="0,0,10,0"/>
+            <Button Content="Limpiar Formulario" Command="{Binding ComandoLimpiarFormulario}"  
+                    Width="140" Height="35" Margin="0,0,10,0"/>
+            <Button Content="Cerrar" Width="100" Height="35" Click="BtnCerrar_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
