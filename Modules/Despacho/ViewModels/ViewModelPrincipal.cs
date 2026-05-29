@@ -116,6 +116,16 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
             _signalRService.PalletDeleted += OnPalletDeletedFromMobile;
             _signalRService.PalletNumberReceived += OnPalletNumberReceivedFromMobile;
             _signalRService.BicolorPackagingTypesRequested += OnBicolorPackagingTypesRequestedFromMobile;
+
+            // Suscribir handlers del Testeador para que funcionen sin necesidad de abrir TesteadorWindow
+            _signalRService.OnPalletInfoRequested(async (palletNumber, deviceId) =>
+            {
+                await AtenderSolicitudInfoPalletTesteador(palletNumber, deviceId);
+            });
+            _signalRService.OnPalletDeletionRequested(async (palletNumber, deviceId) =>
+            {
+                await AtenderSolicitudEliminacionTesteador(palletNumber, deviceId);
+            });
             // NUEVO: Inicializar acceso a datos para embalajes bicolor
             _accesoDatosEmbalajeBicolor = new AccesoDatosEmbalajeBicolor();
 
@@ -715,7 +725,7 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
 
                 // ✅ LÓGICA RESTAURADA: Verificar si es pallet completo y usar TotalCajasFichaTecnica            
                 var pesoEmbalaje = _accesoDatosViajes.ObtenerPesoEmbalaje(pallet.Embalaje);
-                if (pesoEmbalaje != null)
+                if (pesoEmbalaje != null && pesoEmbalaje.PesoUnitario > 0)
                 {
                     pallet.PesoUnitario = pesoEmbalaje.PesoUnitario;
 
@@ -754,9 +764,10 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                 }
                 else
                 {
-                    _logger.LogWarning("No se encontró peso configurado para embalaje: {Embalaje}. Pallet NO será registrado.", pallet.Embalaje);
+                    _logger.LogWarning("Embalaje sin peso/cajas válidos: {Embalaje} (PesoUnitario={Peso}). Pallet NO será registrado.",
+                        pallet.Embalaje, pesoEmbalaje?.PesoUnitario ?? 0);
 
-                    var errorMsg = $"El embalaje '{pallet.Embalaje}' no tiene peso ni cantidad de cajas configurados. El pallet no puede ser registrado.";
+                    var errorMsg = $"El embalaje '{pallet.Embalaje}' no tiene peso unitario ni cantidad de cajas configurados en la tabla de Gestión de Pesos por Embalaje.\nDebe ingresar estos datos antes de registrar el pallet.";
 
                     if (!string.IsNullOrEmpty(_currentDeviceProcessing))
                     {
@@ -1976,6 +1987,105 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                     _logger.LogDebug("🧹 _currentDeviceProcessing limpiado");
                 }
             });
+        }
+
+        // ============================================================================
+        // HANDLERS DE TESTEADOR (registrados en la conexión principal, no en TesteadorWindow)
+        // ============================================================================
+
+        private async Task AtenderSolicitudInfoPalletTesteador(string palletNumber, string deviceId)
+        {
+            try
+            {
+                _logger.LogInfo("[Testeador] Solicitud de info de pallet {NumeroPallet} desde {DeviceId}", palletNumber, deviceId);
+
+                var accesoDatosPallet = new AccesoDatosPallet();
+                var (pallet, lotes, estadoValidacion) = accesoDatosPallet.ObtenerPalletConLotes(palletNumber);
+
+                if (pallet != null && lotes != null)
+                {
+                    var palletData = new
+                    {
+                        Pallet = new
+                        {
+                            pallet.NumeroPallet,
+                            pallet.NumeroDeCajas,
+                            pallet.Calibre,
+                            pallet.Embalaje,
+                            pallet.Variedad
+                        },
+                        Lotes = lotes.Select(l => new
+                        {
+                            l.CodigoCuartel,
+                            l.CSGPredio,
+                            l.NombrePredio,
+                            l.NombreProductor,
+                            l.CalibreLote,
+                            l.EmbalajeLote,
+                            l.VariedadLote,
+                            l.CantidadCajas,
+                            l.EsMinoritario,
+                            l.CalibreMayoritario,
+                            l.EmbalajeMayoritario,
+                            l.VariedadMayoritaria
+                        }).ToList(),
+                        EstadoValidacion = estadoValidacion,
+                        Incompleto = false
+                    };
+
+                    string json = Newtonsoft.Json.JsonConvert.SerializeObject(palletData);
+                    await _signalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
+                }
+                else
+                {
+                    var (encontrado, completo, tablasConRegistros, mensaje) =
+                        accesoDatosPallet.VerificarEstadoPallet(palletNumber);
+
+                    if (encontrado)
+                    {
+                        var palletData = new
+                        {
+                            Incompleto = true,
+                            Mensaje = mensaje,
+                            TablasConRegistros = tablasConRegistros
+                        };
+
+                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(palletData);
+                        await _signalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
+                    }
+                    else
+                    {
+                        await _signalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, "Pallet no encontrado en la base de datos");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Testeador] Error consultando pallet {NumeroPallet}: {Error}", palletNumber, ex.Message);
+                await _signalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, $"Error: {ex.Message}");
+            }
+        }
+
+        private async Task AtenderSolicitudEliminacionTesteador(string palletNumber, string deviceId)
+        {
+            try
+            {
+                _logger.LogInfo("[Testeador] Solicitud de eliminación de pallet {NumeroPallet} desde {DeviceId}", palletNumber, deviceId);
+
+                var accesoDatosPallet = new AccesoDatosPallet();
+                bool eliminado = accesoDatosPallet.EliminarPallet(palletNumber);
+
+                string mensaje = eliminado
+                    ? $"Pallet {palletNumber} eliminado exitosamente de todas las tablas"
+                    : $"No se pudo eliminar el pallet {palletNumber}. Verifique que exista en la base de datos";
+
+                await _signalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, eliminado, mensaje);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Testeador] Error eliminando pallet {NumeroPallet}: {Error}", palletNumber, ex.Message);
+                await _signalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, false, $"Error: {ex.Message}");
+            }
         }
     }
 }

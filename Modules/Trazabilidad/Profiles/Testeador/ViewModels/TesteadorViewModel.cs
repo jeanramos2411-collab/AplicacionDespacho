@@ -103,12 +103,6 @@ namespace AplicacionDespacho.Modules.Trazabilidad.Profiles.Testeador.ViewModels
             PalletInfo = "Ingrese un número de pallet para consultar";
             EstadoValidacion = "";
             ColorValidacion = Brushes.Gray;
-
-            // ⭐ NUEVO: Iniciar conexión SignalR igual que ViewModelPrincipal  
-            if (_signalRService != null)
-            {
-                _ = Task.Run(async () => await _signalRService.StartConnectionAsync());
-            }
         }
 
         private bool CanBuscarPallet(object parameter)
