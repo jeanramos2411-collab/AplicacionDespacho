@@ -224,7 +224,14 @@ namespace AplicacionDespacho.Modules.Common.Views
 
         private void VerificarEstadoConexionActual()
         {
-            bool isConnected = _signalRService?.IsConnected ?? false;
+            if (_signalRService == null)
+            {
+                EstadoConexionTexto = "No iniciado - Abra el módulo Despacho primero";
+                EstadoConexionColor = Brushes.Gray;
+                return;
+            }
+
+            bool isConnected = _signalRService.IsConnected;
 
             if (isConnected)
             {
