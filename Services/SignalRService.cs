@@ -25,10 +25,6 @@ namespace AplicacionDespacho.Services
 
         public event Action<string> TripReopened; // tripId
         public event Action<string> BicolorPackagingTypesRequested;
-
-        // Eventos para módulo Testeador (solicitudes desde APK)
-        public event Func<string, string, Task> PalletInfoRequested; // palletNumber, deviceId
-        public event Func<string, string, Task> PalletDeletionRequested; // palletNumber, deviceId
         // Eventos existentes          
         public event Action<object> PalletScanned;
         public event Action<object> PalletUpdated;
@@ -195,21 +191,6 @@ namespace AplicacionDespacho.Services
                     BicolorPackagingTypesRequested?.Invoke(deviceId);
                 });
 
-                // Testeador: solicitud de info de pallet desde APK
-                _connection.On<string, string>("OnPalletInfoRequested", async (palletNumber, deviceId) =>
-                {
-                    _logger.LogInfo("[Testeador] Solicitud de info de pallet {NumeroPallet} desde {DeviceId}", palletNumber, deviceId);
-                    if (PalletInfoRequested != null)
-                        await PalletInfoRequested.Invoke(palletNumber, deviceId);
-                });
-
-                // Testeador: solicitud de eliminación de pallet desde APK
-                _connection.On<string, string>("OnPalletDeletionRequested", async (palletNumber, deviceId) =>
-                {
-                    _logger.LogInfo("[Testeador] Solicitud de eliminación de pallet {NumeroPallet} desde {DeviceId}", palletNumber, deviceId);
-                    if (PalletDeletionRequested != null)
-                        await PalletDeletionRequested.Invoke(palletNumber, deviceId);
-                });
 
                 _connection.On<object>("PalletListUpdated", (palletsData) =>
                 {

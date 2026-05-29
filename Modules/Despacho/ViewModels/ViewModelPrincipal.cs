@@ -33,6 +33,9 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
         private readonly PalletScanQueue _palletScanQueue;
         private string _currentDeviceProcessing = null;
 
+        // Conexión SignalR dedicada para Testeador (independiente de la conexión principal)
+        private SignalRService _testeadorSignalRService;
+
         private string _entradaNumeroPallet;
         public string EntradaNumeroPallet
         {
@@ -117,9 +120,6 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
             _signalRService.PalletNumberReceived += OnPalletNumberReceivedFromMobile;
             _signalRService.BicolorPackagingTypesRequested += OnBicolorPackagingTypesRequestedFromMobile;
 
-            // Suscribir handlers del Testeador para que funcionen sin necesidad de abrir TesteadorWindow
-            _signalRService.PalletInfoRequested += AtenderSolicitudInfoPalletTesteador;
-            _signalRService.PalletDeletionRequested += AtenderSolicitudEliminacionTesteador;
             // NUEVO: Inicializar acceso a datos para embalajes bicolor
             _accesoDatosEmbalajeBicolor = new AccesoDatosEmbalajeBicolor();
 
@@ -128,6 +128,9 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
 
             // Inicializar conexión SignalR  
             _ = Task.Run(async () => await _signalRService.StartConnectionAsync());
+
+            // Iniciar conexión dedicada para Testeador (independiente de la principal)
+            _ = Task.Run(async () => await IniciarServicioTesteadorAsync());
 
             _logger.LogInfo("ViewModelPrincipal inicializado con SignalR y cola de escaneos");
 
@@ -1984,8 +1987,35 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
         }
 
         // ============================================================================
-        // HANDLERS DE TESTEADOR (registrados en la conexión principal, no en TesteadorWindow)
+        // SERVICIO TESTEADOR: Conexión SignalR dedicada (independiente de la principal)
+        // Replica el patrón de TesteadorWindow pero sin depender de la ventana.
         // ============================================================================
+
+        private async Task IniciarServicioTesteadorAsync()
+        {
+            try
+            {
+                _testeadorSignalRService = new SignalRService(AppConfig.SignalRHubUrl);
+                await _testeadorSignalRService.StartConnectionAsync();
+
+                // Registrar handlers DESPUÉS de que la conexión esté establecida
+                _testeadorSignalRService.OnPalletInfoRequested(async (palletNumber, deviceId) =>
+                {
+                    await AtenderSolicitudInfoPalletTesteador(palletNumber, deviceId);
+                });
+
+                _testeadorSignalRService.OnPalletDeletionRequested(async (palletNumber, deviceId) =>
+                {
+                    await AtenderSolicitudEliminacionTesteador(palletNumber, deviceId);
+                });
+
+                _logger.LogInfo("[Testeador] Servicio Testeador iniciado con conexión dedicada");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Testeador] Error iniciando servicio Testeador: {Error}", ex.Message);
+            }
+        }
 
         private async Task AtenderSolicitudInfoPalletTesteador(string palletNumber, string deviceId)
         {
@@ -2028,7 +2058,7 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                     };
 
                     string json = Newtonsoft.Json.JsonConvert.SerializeObject(palletData);
-                    await _signalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
+                    await _testeadorSignalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
                 }
                 else
                 {
@@ -2045,18 +2075,22 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                         };
 
                         string json = Newtonsoft.Json.JsonConvert.SerializeObject(palletData);
-                        await _signalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
+                        await _testeadorSignalRService.SendPalletInfoToMobileTesteadorAsync(json, deviceId, true, "");
                     }
                     else
                     {
-                        await _signalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, "Pallet no encontrado en la base de datos");
+                        await _testeadorSignalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, "Pallet no encontrado en la base de datos");
                     }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Testeador] Error consultando pallet {NumeroPallet}: {Error}", palletNumber, ex.Message);
-                await _signalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, $"Error: {ex.Message}");
+                try
+                {
+                    await _testeadorSignalRService.SendPalletInfoToMobileTesteadorAsync("", deviceId, false, $"Error: {ex.Message}");
+                }
+                catch { }
             }
         }
 
@@ -2073,12 +2107,16 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                     ? $"Pallet {palletNumber} eliminado exitosamente de todas las tablas"
                     : $"No se pudo eliminar el pallet {palletNumber}. Verifique que exista en la base de datos";
 
-                await _signalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, eliminado, mensaje);
+                await _testeadorSignalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, eliminado, mensaje);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Testeador] Error eliminando pallet {NumeroPallet}: {Error}", palletNumber, ex.Message);
-                await _signalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, false, $"Error: {ex.Message}");
+                try
+                {
+                    await _testeadorSignalRService.SendDeletionResultToMobileAsync(palletNumber, deviceId, false, $"Error: {ex.Message}");
+                }
+                catch { }
             }
         }
     }
