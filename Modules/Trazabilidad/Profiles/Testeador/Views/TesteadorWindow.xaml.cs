@@ -24,57 +24,11 @@ namespace AplicacionDespacho.Modules.Trazabilidad.Profiles.Testeador.Views
 
             _signalRService = signalRService;
 
-            if (_signalRService != null)
-            {
-                // Iniciar conexión igual que ViewModelPrincipal  
-                _ = Task.Run(async () => await _signalRService.StartConnectionAsync());
-
-                // Esperar un momento para que la conexión se establezca  
-                Task.Delay(1000).ContinueWith(_ =>
-                {
-                    Dispatcher.Invoke(() => SuscribirEventosSignalR());
-                });
-            }
-
-            // ⭐ NUEVO: Agregar manejador de cierre para limpiar SignalR  
-            this.Closing += async (s, e) =>
-            {
-                if (_signalRService != null)
-                {
-                    try
-                    {
-                        await _signalRService.StopConnectionAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error al detener SignalR: {ex.Message}");
-                    }
-                }
-            };
-        }
-
-        /// <summary>  
-        /// Suscribe eventos de SignalR para atender solicitudes del módulo Testeador móvil  
-        /// </summary>  
-        private void SuscribirEventosSignalR()
-        {
-            // Evento: Móvil solicita información de pallet  
-            _signalRService.OnPalletInfoRequested(async (palletNumber, deviceId) =>
-            {
-                await Dispatcher.InvokeAsync(async () =>
-                {
-                    await AtenderSolicitudInfoPallet(palletNumber, deviceId);
-                });
-            });
-
-            // Evento: Móvil solicita eliminación de pallet  
-            _signalRService.OnPalletDeletionRequested(async (palletNumber, deviceId) =>
-            {
-                await Dispatcher.InvokeAsync(async () =>
-                {
-                    await AtenderSolicitudEliminacion(palletNumber, deviceId);
-                });
-            });
+            // Los handlers de Testeador (OnPalletInfoRequested, OnPalletDeletionRequested)
+            // se registran en ViewModelPrincipal sobre la conexión principal de SignalR,
+            // por lo que esta ventana NO necesita iniciar/detener su propia conexión
+            // ni suscribirse a eventos. Esto permite que el Testeador funcione desde
+            // el APK sin necesidad de tener esta ventana abierta.
         }
 
         /// <summary>  
