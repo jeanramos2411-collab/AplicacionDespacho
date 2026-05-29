@@ -118,14 +118,8 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
             _signalRService.BicolorPackagingTypesRequested += OnBicolorPackagingTypesRequestedFromMobile;
 
             // Suscribir handlers del Testeador para que funcionen sin necesidad de abrir TesteadorWindow
-            _signalRService.OnPalletInfoRequested(async (palletNumber, deviceId) =>
-            {
-                await AtenderSolicitudInfoPalletTesteador(palletNumber, deviceId);
-            });
-            _signalRService.OnPalletDeletionRequested(async (palletNumber, deviceId) =>
-            {
-                await AtenderSolicitudEliminacionTesteador(palletNumber, deviceId);
-            });
+            _signalRService.PalletInfoRequested += AtenderSolicitudInfoPalletTesteador;
+            _signalRService.PalletDeletionRequested += AtenderSolicitudEliminacionTesteador;
             // NUEVO: Inicializar acceso a datos para embalajes bicolor
             _accesoDatosEmbalajeBicolor = new AccesoDatosEmbalajeBicolor();
 
