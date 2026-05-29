@@ -346,7 +346,8 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                                 pallet.TienePesoInconsistente = false;
                             }
 
-                            // ✅ CAMBIO: Usar total de ficha técnica directamente para peso  
+                            // Restaurar NumeroDeCajas al valor de ficha técnica para mantener consistencia
+                            pallet.NumeroDeCajas = cajasFichaTecnica;
                             pallet.PesoTotal = pesoCalculadoCorrect;
 
                             _logger.LogInfo("Peso recalculado para pallet PC bicolor {NumeroPallet}: {TotalCajas} cajas = {PesoTotal} kg",
@@ -426,6 +427,8 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                                 pallet.TienePesoInconsistente = false;
                             }
 
+                            // Restaurar NumeroDeCajas al valor de ficha técnica para mantener consistencia
+                            pallet.NumeroDeCajas = cajasFichaTecnica;
                             pallet.PesoTotal = pesoCalculadoCorrect;
 
                             _logger.LogInfo("Peso recalculado para pallet PC {NumeroPallet}: {TotalCajas} cajas = {PesoTotal} kg",
@@ -2028,6 +2031,22 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
 
                 if (pallet != null && lotes != null)
                 {
+                    // Calcular lotes reales (cuarteles únicos) y tipos de etiqueta
+                    int lotesReales = lotes.Select(l => l.CodigoCuartel).Distinct().Count();
+                    int tiposDeEtiqueta = lotes.Count;
+                    int sumaCajas = lotes.Sum(l => l.CantidadCajas);
+
+                    // Generar estado de validación detallado
+                    string estadoDetallado;
+                    if (estadoValidacion == "DISCREPANCIA")
+                    {
+                        estadoDetallado = $"DISCREPANCIA - Declarado: {pallet.NumeroDeCajas} cajas, Contado: {sumaCajas} cajas";
+                    }
+                    else
+                    {
+                        estadoDetallado = $"OK - {lotesReales} lote(s), {tiposDeEtiqueta} tipo(s) de etiqueta";
+                    }
+
                     var palletData = new
                     {
                         Pallet = new
@@ -2053,7 +2072,9 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                             l.EmbalajeMayoritario,
                             l.VariedadMayoritaria
                         }).ToList(),
-                        EstadoValidacion = estadoValidacion,
+                        EstadoValidacion = estadoDetallado,
+                        LotesReales = lotesReales,
+                        TiposDeEtiqueta = tiposDeEtiqueta,
                         Incompleto = false
                     };
 

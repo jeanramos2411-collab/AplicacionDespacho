@@ -163,22 +163,28 @@ namespace AplicacionDespacho.Modules.Trazabilidad.Profiles.Testeador.ViewModels
                         }
                     }
 
+                    // Calcular lotes reales (cuarteles únicos) y tipos de etiqueta
+                    int lotesReales = Lotes.Select(l => l.CodigoCuartel).Distinct().Count();
+                    int tiposEtiqueta = Lotes.Count;
+
                     // Validación de consistencia de cajas    
                     int sumaCajas = Lotes.Sum(l => l.CantidadCajas);
                     if (sumaCajas == pallet.NumeroDeCajas)
                     {
-                        EstadoValidacion = $"OK - {Lotes.Count} lote(s) encontrado(s)";
+                        EstadoValidacion = $"OK - {lotesReales} lote(s), {tiposEtiqueta} tipo(s) de etiqueta";
                         ColorValidacion = Brushes.Green;
                     }
                     else
                     {
-                        EstadoValidacion = $"DISCREPANCIA - Total: {pallet.NumeroDeCajas}, Suma lotes: {sumaCajas}";
+                        EstadoValidacion = $"DISCREPANCIA - Declarado: {pallet.NumeroDeCajas} cajas, Contado: {sumaCajas} cajas | {lotesReales} lote(s), {tiposEtiqueta} tipo(s) de etiqueta";
                         ColorValidacion = Brushes.Orange;
 
                         MessageBox.Show(
                             $"⚠️ DISCREPANCIA DETECTADA:\n\n" +
                             $"Total declarado: {pallet.NumeroDeCajas} cajas\n" +
                             $"Suma de lotes: {sumaCajas} cajas\n\n" +
+                            $"Lotes reales (cuarteles): {lotesReales}\n" +
+                            $"Tipos de etiqueta: {tiposEtiqueta}\n\n" +
                             $"Verifique la información del pallet.",
                             "Advertencia",
                             MessageBoxButton.OK,
