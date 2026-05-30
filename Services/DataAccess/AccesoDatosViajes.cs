@@ -377,6 +377,15 @@ namespace AplicacionDespacho.Services.DataAccess
             }
         }
 
+        public bool ExisteEmbalajeEnCatalogoPacking(string nombreEmbalaje)
+        {
+            if (string.IsNullOrWhiteSpace(nombreEmbalaje))
+                return false;
+
+            return ObtenerTodosLosEmbalajes()
+                .Any(e => e.Equals(nombreEmbalaje.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
         public PesoEmbalaje ObtenerPesoEmbalaje(string nombreEmbalaje)
         {
             PesoEmbalaje pesoEmbalaje = null;
@@ -384,13 +393,13 @@ namespace AplicacionDespacho.Services.DataAccess
         SELECT PesoEmbalajeId, NombreEmbalaje, PesoUnitario, TotalCajasFichaTecnica,  
                FechaCreacion, FechaModificacion, Activo    
         FROM PESOS_EMBALAJE     
-        WHERE NombreEmbalaje = @NombreEmbalaje AND Activo = 1";
+        WHERE LOWER(LTRIM(RTRIM(NombreEmbalaje))) = LOWER(LTRIM(RTRIM(@NombreEmbalaje))) AND Activo = 1";
 
             using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
             {
                 using (SqlCommand comando = new SqlCommand(consulta, conexion))
                 {
-                    comando.Parameters.AddWithValue("@NombreEmbalaje", nombreEmbalaje);
+                    comando.Parameters.AddWithValue("@NombreEmbalaje", nombreEmbalaje?.Trim() ?? string.Empty);
 
                     try
                     {

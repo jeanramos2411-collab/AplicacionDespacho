@@ -42,9 +42,31 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
             get => _entradaNumeroPallet;
             set
             {
-                _entradaNumeroPallet = value?.ToUpper();
-                OnPropertyChanged(nameof(EntradaNumeroPallet));
+                // 🔥 LIMPIAR: Eliminar espacios, saltos de línea, tabs y caracteres de control
+                var cleaned = string.IsNullOrEmpty(value) ? value : LimpiarNumeroPallet(value);
+
+                // Convertir a mayúsculas después de limpiar
+                cleaned = cleaned?.ToUpper();
+
+                if (_entradaNumeroPallet != cleaned)
+                {
+                    _entradaNumeroPallet = cleaned;
+                    OnPropertyChanged(nameof(EntradaNumeroPallet));
+                }
             }
+        }
+
+        // ✅ Método auxiliar para limpiar el número de pallet
+        private string LimpiarNumeroPallet(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            // Eliminar TODOS los caracteres que NO sean letras o números
+            // Esto elimina: espacios, saltos de línea (\n, \r), tabs (\t), etc.
+            var cleaned = new string(input.Where(c => char.IsLetterOrDigit(c)).ToArray());
+
+            return cleaned;
         }
         public ObservableCollection<string> Embalajes { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> Variedades { get; set; } = new ObservableCollection<string>();
@@ -253,6 +275,98 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
             return TieneViajeActivo && PalletsEscaneados.Count < AppConfig.MaxPalletsPerTrip;
         }
 
+        /// <summary>
+        /// Valida embalaje en PESOS_EMBALAJE con mensajes diferenciados:
+        /// no existe en la tabla vs existe pero le faltan valores (peso unitario / ficha técnica PC).
+        /// </summary>
+        private bool ValidarEmbalajeEnGestionPesos(
+            string nombreEmbalaje,
+            string tipoPallet,
+            bool esPalletCompleto,
+            bool esEdicion,
+            out string errorMessage)
+        {
+            errorMessage = null;
+
+            nombreEmbalaje = nombreEmbalaje?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(nombreEmbalaje))
+            {
+                errorMessage = "Debe indicar un embalaje válido.";
+                return false;
+            }
+
+            string accion = esEdicion ? "modificar el pallet" : "registrar el pallet";
+            var pesoEmbalaje = _accesoDatosViajes.ObtenerPesoEmbalaje(nombreEmbalaje);
+
+            if (pesoEmbalaje == null)
+            {
+                // En la ventana Gestión aparece con 0/0 pero PesoEmbalajeId=0: aún no está guardado en PESOS_EMBALAJE
+                if (_accesoDatosViajes.ExisteEmbalajeEnCatalogoPacking(nombreEmbalaje))
+                {
+                    errorMessage =
+                        $"El embalaje '{nombreEmbalaje}' está en el listado de embalajes, pero no tiene valores guardados en Gestión de Pesos por Embalaje.\n" +
+                        $"Tiene peso unitario y/o cajas de ficha técnica en cero o sin guardar.\n" +
+                        $"Abra \"Gestión de Pesos por Embalaje\", ingrese el peso unitario (mayor que cero)";
+                    if (esPalletCompleto)
+                    {
+                        errorMessage += " y el total de cajas de ficha técnica";
+                    }
+                    errorMessage += $", pulse Guardar y luego {accion} ({tipoPallet}).";
+                }
+                else
+                {
+                    errorMessage =
+                        $"El embalaje '{nombreEmbalaje}' no existe en el catálogo ni en Gestión de Pesos por Embalaje.\n" +
+                        $"Verifique el nombre o regístrelo en \"Gestión de Pesos por Embalaje\" antes de {accion} ({tipoPallet}).";
+                }
+                return false;
+            }
+
+            if (pesoEmbalaje.PesoUnitario <= 0)
+            {
+                errorMessage =
+                    $"El embalaje '{nombreEmbalaje}' está registrado en Gestión de Pesos por Embalaje, pero el peso unitario es cero o no fue ingresado.\n" +
+                    $"Debe actualizar el peso unitario (mayor que cero) antes de {accion} ({tipoPallet}).";
+                return false;
+            }
+
+            if (esPalletCompleto &&
+                (!pesoEmbalaje.TotalCajasFichaTecnica.HasValue || pesoEmbalaje.TotalCajasFichaTecnica.Value <= 0))
+            {
+                errorMessage =
+                    $"El embalaje '{nombreEmbalaje}' está registrado en Gestión de Pesos por Embalaje, pero el total de cajas de ficha técnica es cero o no fue ingresado.\n" +
+                    "Para pallets completos (PC) debe ingresar ese valor y guardar el registro.\n" +
+                    "(Los pallets PH, CT y EN no requieren ficha técnica.)";
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidarEmbalajeParaEdicion(InformacionPallet pallet, out string errorMessage)
+        {
+            return ValidarEmbalajeEnGestionPesos(
+                pallet.Embalaje,
+                pallet.TipoPallet,
+                pallet.EsPC,
+                esEdicion: true,
+                out errorMessage);
+        }
+
+        private void NotificarErrorEmbalajeEdicion(string errorMessage, string deviceId = null)
+        {
+            if (!string.IsNullOrEmpty(deviceId))
+            {
+                _ = _signalRService.SendPalletErrorToMobileAsync(
+                    ViajeActivo.ViajeId.ToString(), errorMessage, deviceId);
+            }
+            else
+            {
+                MessageBox.Show(errorMessage, "Embalaje sin configuración",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
 
         public void RecalcularPesoPallet(InformacionPallet pallet)
         {
@@ -437,12 +551,12 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                     }
                     else
                     {
-                        // ✅ CAMBIO: Para pallets normales (no PC), bicolor y monocolor usan la misma lógica    
-                        // Ya no sumamos CajasSegundaVariedad para bicolor - solo usamos NumeroDeCajas    
+                        // PH, CT, EN (y PC sin ficha, bloqueado antes por ValidarEmbalajeParaEdicion):
+                        // respeta NumeroDeCajas ingresado por el operador.
                         pallet.PesoTotal = pallet.NumeroDeCajas * pesoEmbalaje.PesoUnitario;
 
                         _logger.LogInfo("Peso recalculado para pallet {TipoPallet} {NumeroPallet}: {NumeroCajas} cajas = {PesoTotal} kg",
-                                      pallet.EsBicolor ? "bicolor" : "normal",
+                                      pallet.TipoPallet,
                                       pallet.NumeroPallet,
                                       pallet.NumeroDeCajas,
                                       pallet.PesoTotal);
@@ -450,9 +564,8 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                 }
                 else
                 {
-                    pallet.PesoUnitario = 0;
-                    pallet.PesoTotal = 0;
-                    _logger.LogWarning("No se encontró configuración de peso para embalaje: {Embalaje}", pallet.Embalaje);
+                    // No poner ceros: ValidarEmbalajeParaEdicion debe bloquear antes de llegar aquí.
+                    _logger.LogWarning("No se encontró configuración de peso para embalaje: {Embalaje}. Recálculo omitido.", pallet.Embalaje);
                 }
             }
             catch (Exception ex)
@@ -767,7 +880,12 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                     _logger.LogWarning("Embalaje sin peso/cajas válidos: {Embalaje} (PesoUnitario={Peso}). Pallet NO será registrado.",
                         pallet.Embalaje, pesoEmbalaje?.PesoUnitario ?? 0);
 
-                    var errorMsg = $"El embalaje '{pallet.Embalaje}' no tiene peso unitario ni cantidad de cajas configurados en la tabla de Gestión de Pesos por Embalaje.\nDebe ingresar estos datos antes de registrar el pallet.";
+                    ValidarEmbalajeEnGestionPesos(
+                        pallet.Embalaje,
+                        pallet.TipoPallet,
+                        pallet.EsPC,
+                        esEdicion: false,
+                        out string errorMsg);
 
                     if (!string.IsNullOrEmpty(_currentDeviceProcessing))
                     {
@@ -1159,10 +1277,25 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
 
                 _logger.LogDebug("Modificación detectada: {HuboModificacion}", huboModificacion);
 
-                // ✅ CAMBIO: Recalcular peso solo si cambió embalaje o número de cajas (sin CajasSegundaVariedad)  
+                // Validar/recalcular solo si cambió embalaje o cajas.
+                // Todos los tipos (PC, PH, CT, EN): embalaje debe existir en Gestión de Pesos.
+                // Solo PC usa ficha técnica en RecalcularPesoPallet; PH/CT/EN conservan cajas del operador.
                 if (UltimoPalletEscaneado.Embalaje != UltimoPalletEscaneado.EmbalajeOriginal ||
                     UltimoPalletEscaneado.NumeroDeCajas != UltimoPalletEscaneado.NumeroDeCajasOriginal)
                 {
+                    if (!ValidarEmbalajeParaEdicion(UltimoPalletEscaneado, out string errorEmbalaje))
+                    {
+                        UltimoPalletEscaneado.Embalaje = UltimoPalletEscaneado.EmbalajeOriginal ?? PalletSeleccionado.Embalaje;
+                        UltimoPalletEscaneado.NumeroDeCajas = UltimoPalletEscaneado.NumeroDeCajasOriginal != 0
+                            ? UltimoPalletEscaneado.NumeroDeCajasOriginal
+                            : PalletSeleccionado.NumeroDeCajas;
+                        UltimoPalletEscaneado.PesoUnitario = PalletSeleccionado.PesoUnitario;
+                        UltimoPalletEscaneado.PesoTotal = PalletSeleccionado.PesoTotal;
+                        OnPropertyChanged(nameof(UltimoPalletEscaneado));
+                        NotificarErrorEmbalajeEdicion(errorEmbalaje);
+                        return;
+                    }
+
                     RecalcularPesoPallet(UltimoPalletEscaneado);
                 }
 
@@ -1888,6 +2021,9 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                         string variedadOriginal = existingPallet.Variedad;
                         string embalajeOriginal = existingPallet.Embalaje;
                         int cajasOriginales = existingPallet.NumeroDeCajas;
+                        bool modificadoOriginal = existingPallet.Modificado;
+                        decimal pesoUnitarioOriginal = existingPallet.PesoUnitario;
+                        decimal pesoTotalOriginal = existingPallet.PesoTotal;
 
                         // ✅ CAMBIO: Solo guardar SegundaVariedad original (no cajas)  
                         string segundaVariedadOriginal = existingPallet.SegundaVariedad;
@@ -1945,9 +2081,47 @@ namespace AplicacionDespacho.Modules.Despacho.ViewModels
                                            existingPallet.Variedad, existingPallet.SegundaVariedad, existingPallet.NumeroDeCajas);
                         }
 
-                        // ✅ CRÍTICO: RecalcularPesoPallet ahora puede detectar que viene desde móvil    
-                        // porque _currentDeviceProcessing está establecido    
-                        RecalcularPesoPallet(existingPallet);
+                        // Validar/recalcular solo si cambió embalaje o cajas.
+                        // PH/CT/EN: cajas manuales se respetan en RecalcularPesoPallet (rama no-PC).
+                        // PC: RecalcularPesoPallet aplica ficha técnica cuando corresponde.
+                        bool embalajeOCajasCambiaron =
+                            existingPallet.Embalaje != embalajeOriginal ||
+                            existingPallet.NumeroDeCajas != cajasOriginales;
+
+                        if (embalajeOCajasCambiaron)
+                        {
+                            if (!ValidarEmbalajeParaEdicion(existingPallet, out string errorEmbalajeMovil))
+                            {
+                                string embalajeIntentado = existingPallet.Embalaje;
+
+                                existingPallet.Calibre = calibreOriginal;
+                                existingPallet.Variedad = variedadOriginal;
+                                existingPallet.Embalaje = embalajeOriginal;
+                                existingPallet.NumeroDeCajas = cajasOriginales;
+                                existingPallet.SegundaVariedad = segundaVariedadOriginal;
+                                existingPallet.Modificado = modificadoOriginal;
+                                existingPallet.PesoUnitario = pesoUnitarioOriginal;
+                                existingPallet.PesoTotal = pesoTotalOriginal;
+
+                                _logger.LogWarning("Edición desde móvil rechazada ({TipoPallet}) - embalaje inválido: {Embalaje}",
+                                    existingPallet.TipoPallet, embalajeIntentado);
+
+                                await _signalRService.SendPalletErrorToMobileAsync(
+                                    ViajeActivo.ViajeId.ToString(), errorEmbalajeMovil, deviceId);
+
+                                var palletsSinCambio = _accesoDatosViajes.ObtenerPalletsDeViaje(ViajeActivo.ViajeId);
+                                PalletsEscaneados.Clear();
+                                foreach (var pallet in palletsSinCambio)
+                                {
+                                    PalletsEscaneados.Add(pallet);
+                                }
+
+                                await _signalRService.SendPalletListToMobileAsync(deviceId, PalletsEscaneados.ToList());
+                                return;
+                            }
+
+                            RecalcularPesoPallet(existingPallet);
+                        }
 
                         _accesoDatosViajes.ActualizarPalletViaje(existingPallet, ViajeActivo.ViajeId);
 
